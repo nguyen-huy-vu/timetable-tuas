@@ -5,29 +5,15 @@ from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 
 def main():
-    #options = Options()
-    #options.add_argument("--headless=new")
-    #options.add_argument("--no-sandbox")
-    #options.add_argument("--disable-dev-shm-usage")
-#
-    #service = Service(ChromeDriverManager().install())
-    #driver = webdriver.Chrome(service=service, options=options)
-
-    # Path to ChromeDriver
-    chromedriver_path = r"C:\chromedriver\chromedriver.exe"
-
-    # Path to Brave browser executable
-    brave_path = r"C:\Program Files\BraveSoftware\Brave-Browser\Application/brave.exe"
-
     options = Options()
-    options.binary_location = brave_path
+    options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
 
-    service = Service(chromedriver_path)
+    service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)
 
-    driver.get("https://www.google.com")
+    driver.get("https://www.blackfridayale.fi/")
     title = driver.title
     driver.quit()
 
