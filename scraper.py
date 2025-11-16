@@ -13,7 +13,7 @@ def main():
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)
 
-    driver.get("https://www.itsco.de/")
+    driver.get("https://www.gigantti.fi/")
     title = driver.title
     driver.quit()
 
