@@ -15,6 +15,10 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Test write other result into json
+        run: |
+          echo '{"title": "Introduction to Programming"}' > result.json
+
       - name: Commit and push changes
         run: |
           git config user.name "github-actions[bot]"
