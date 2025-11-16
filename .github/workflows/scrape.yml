@@ -1,7 +1,12 @@
-name: Test Commit JSON
+name: Getting timetable and output to json
+
+# on:
+#   workflow_dispatch:
 
 on:
-  workflow_dispatch:
+  repository_dispatch:
+    types: [update_json]
+  workflow_dispatch: # also allow manual trigger from GitHub UI
 
 permissions:
   contents: write
