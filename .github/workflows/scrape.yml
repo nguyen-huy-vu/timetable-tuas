@@ -13,7 +13,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          path: . # checkout at root
+          path: .
           fetch-depth: 0
 
       - name: Set up Python
