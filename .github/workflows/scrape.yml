@@ -15,9 +15,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: List files
-        run: ls -al          
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -30,7 +27,7 @@ jobs:
         uses: browser-actions/setup-chrome@v1
 
       - name: Run scraper
-        run: python scrape.py
+        run: python scraper.py
 
       - name: Upload result json
         uses: actions/upload-artifact@v4
