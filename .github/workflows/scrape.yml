@@ -1,12 +1,7 @@
-name: Getting timetable and output to json
-
-# on:
-#   workflow_dispatch:
+name: Getting timetable and output to JSON
 
 on:
-  repository_dispatch:
-    types: [update_json]
-  workflow_dispatch: # also allow manual trigger from GitHub UI
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -14,6 +9,7 @@ permissions:
 jobs:
   commit-json:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -34,16 +30,11 @@ jobs:
       - name: Run scraper
         run: python scraper.py
 
-      - name: Upload result json
-        uses: actions/upload-artifact@v4
-        with:
-          name: scraped-data
-          path: result.json
-
-      - name: Commit and push changes
+      - name: Commit and push updated JSON
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          sleep 3
           cp result.json docs/result.json
           git add docs/result.json
           git commit -m "update result.json" || echo "No changes to commit"
