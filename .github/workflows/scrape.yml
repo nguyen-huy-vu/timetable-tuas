@@ -11,11 +11,12 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
+          path: .
           python-version: "3.x"
 
       - name: check root
         run: pwd
-        
+
       - name: Install dependencies
         run: pip install selenium webdriver-manager requests
 
