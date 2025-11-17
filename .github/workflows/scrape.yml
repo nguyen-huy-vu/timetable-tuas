@@ -1,26 +1,20 @@
-name: Scrape lukkari and Update Gist JSON
+name: Scrape lukkari and update Gist
 
 on:
   workflow_dispatch:
 
-permissions:
-  contents: read
-
 jobs:
-  run-scraper:
+  scrape:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.x"
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install selenium webdriver-manager requests
 
       - name: Install Chrome
         uses: browser-actions/setup-chrome@v1
@@ -28,14 +22,29 @@ jobs:
       - name: Run scraper
         run: python scraper.py
 
-      - name: Update Gist with result.json
+      - name: Update Gist with JSON result
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
           GIST_ID: ${{ secrets.GIST_ID }}
+          GIST_FILE: ${{ secrets.GIST_FILE }}
+          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
         run: |
-          CONTENT=$(jq -Rs '.' < result.json)
-          gh api \
-            --method PATCH \
-            -H "Accept: application/vnd.github+json" \
-            /gists/$GIST_ID \
-            -f files[result.json].content="$CONTENT"
+          echo "Uploading result.json to Gist..."
+          python3 - << 'EOF'
+          import json, requests, os
+
+          gist_id = os.environ["GIST_ID"]
+          gist_file = os.environ["GIST_FILE"]
+          token = os.environ["GIST_TOKEN"]
+
+          with open("result.json") as f:
+              content = f.read()
+
+          url = f"https://api.github.com/gists/{gist_id}"
+          headers = {"Authorization": f"Bearer {token}"}
+          payload = {"files": {gist_file: {"content": content}}}
+
+          r = requests.patch(url, headers=headers, data=json.dumps(payload))
+          print("Status:", r.status_code)
+          print(r.text)
+          r.raise_for_status()
+          EOF
