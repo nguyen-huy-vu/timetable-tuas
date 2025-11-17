@@ -26,7 +26,7 @@ jobs:
         env:
           GIST_ID: ${{ secrets.GIST_ID }}
           GIST_FILE: ${{ secrets.GIST_FILE }}
-          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+          GIST_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           echo "Uploading result.json to Gist..."
           python3 - << 'EOF'
@@ -34,7 +34,7 @@ jobs:
 
           gist_id = os.environ["GIST_ID"]
           gist_file = os.environ["GIST_FILE"]
-          token = os.environ["GIST_TOKEN"]
+          token = os.environ["GH_TOKEN"]
 
           with open("result.json") as f:
               content = f.read()
