@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  scrape lukkari:
+  scrape_lukkari:
     runs-on: ubuntu-latest
 
     steps:
