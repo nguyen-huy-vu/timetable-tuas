@@ -209,4 +209,5 @@ __marimo__/
 # guideline
 *.docx
 
-*.enc
+# Python Kivy app for Android
+kivy_main.py
