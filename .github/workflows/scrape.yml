@@ -37,7 +37,7 @@ jobs:
 
           gist_id = os.environ["GIST_ID"]
           gist_file = os.environ["GIST_FILE"]
-          token = os.environ["GH_TOKEN"]
+          token = os.environ["GIST_TOKEN"]
 
           with open("result.json") as f:
               content = f.read()
