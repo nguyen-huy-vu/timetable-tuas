@@ -1,21 +1,20 @@
-name: Scrape lukkari and update Gist
+name: Scrape lukkari and Update Gist
 
 on:
   workflow_dispatch:
 
 jobs:
-  scrape_lukkari:
+  scrape_lukkari_and_update_gist:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          path: .
           python-version: "3.x"
-
-      - name: check root
-        run: pwd
 
       - name: Install dependencies
         run: pip install selenium webdriver-manager requests
