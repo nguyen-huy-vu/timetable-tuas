@@ -29,27 +29,22 @@ def parse_timetable_from_html(html_content):
     # parse contents to result
     content_cols = soup.select('div.fc-content-skeleton td')
 
-    print(len(header_dates))
-    print(len(header_names))
-    print(len(content_cols))
-    
-    for idx, td in enumerate(content_cols[1:]):  # skip first td due to time column
-        date_key = header_dates[idx]
+    for td in content_cols:
+        date_key = td.get('data-date')
+        if not date_key or date_key not in header_dates:
+            continue
+
         events = td.select("a.fc-time-grid-event")
         for ev in events:
-            # extract time
             time_span = ev.select_one(".fc-time span")
             time_text = time_span.get_text(strip=True) if time_span else ""
 
-            # extract title
             title_div = ev.select_one("div[style*='font-weight:500']")
             title_text = title_div.get_text(strip=True) if title_div else ""
 
-            # extract location
             loc_div = ev.select_one("div[style*='font-weight:300']")
             location_text = loc_div.get_text("\n", strip=True) if loc_div else ""
 
-            # append to events
             result[date_key]["events"].append({
                 "time": time_text,
                 "title": title_text,
