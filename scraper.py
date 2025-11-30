@@ -55,11 +55,18 @@ def main():
     # get data of each columns
     content_cols = soup.select('div.fc-content-skeleton td')
 
+    print("header_dates:", header_dates)
+    print("len(header_dates):", len(header_dates))
+    print("len(cols):", len(content_cols))
+    print("HTML snippet:", content_cols[:500])
+
     # initial an empty dict to store the result
     result = {
         date: {"label": name, "events": []}
         for date, name in zip(header_dates, header_names)
     }
+
+    print(result)
 
     # parse content into result
     for idx, td in enumerate(content_cols):
