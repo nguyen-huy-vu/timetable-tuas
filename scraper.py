@@ -28,6 +28,11 @@ def parse_timetable_from_html(html_content):
 
     # parse contents to result
     content_cols = soup.select('div.fc-content-skeleton td')
+
+    print(len(header_dates))
+    print(len(header_names))
+    print(len(content_cols))
+    
     for idx, td in enumerate(content_cols[1:]):  # skip first td due to time column
         date_key = header_dates[idx]
         events = td.select("a.fc-time-grid-event")
@@ -53,13 +58,14 @@ def parse_timetable_from_html(html_content):
     return result
 
     
-# write result to json
+# a function write result to json
 def write_to_json(result,filename):
     with open(f"{filename}.json", "w") as f:
         json.dump(result, f)
     print(f"Saved: {filename}.json")
 
 
+# main function
 def main():
     # prepare username and password
     username = os.environ.get("LOGIN_USER")
