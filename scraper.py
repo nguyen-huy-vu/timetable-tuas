@@ -89,21 +89,26 @@ def main():
     driver.find_element(By.XPATH, "/html/body/div/div/div/div[1]/form/div[4]/button").click()
     time.sleep(5)  # wait to ensure calendar loaded
 
-    # get html content of current week
+    # xpath for timetable
     xpath = "/html/body/app-root/mat-sidenav-container/mat-sidenav-content/mat-drawer-container/mat-drawer-content/div[2]/ng-component/div/div[2]/ng-fullcalendar"
+    
+    # get html content of current week
     table_element_this = driver.find_element(By.XPATH, xpath)
     html_content_this = table_element_this.get_attribute("outerHTML")
-    time.sleep(2)
+    time.sleep(1)
 
     # parse and save timetable of current week to json
     result_this = parse_timetable_from_html(html_content_this)
     write_to_json(result_this,"result_this") 
 
+    # move on next week
+    driver.find_element(By.XPATH, "/html/body/app-root/mat-sidenav-container/mat-sidenav-content/mat-drawer-container/mat-drawer-content/div[2]/ng-component/div/div[2]/ng-fullcalendar/div[1]/div[1]/div/button[2]").click()
+    time.sleep(3)
+    
     # get html content of next week
-    xpath_next = "/html/body/app-root/mat-sidenav-container/mat-sidenav-content/mat-drawer-container/mat-drawer-content/div[2]/ng-component/div/div[2]/ng-fullcalendar/div[1]/div[1]/div/button[2]"
-    table_element_next = driver.find_element(By.XPATH, xpath_next)
+    table_element_next = driver.find_element(By.XPATH, xpath)
     html_content_next = table_element_next.get_attribute("outerHTML")
-    time.sleep(2)
+    time.sleep(1)
 
     # parse and save timetable of next week to json
     result_next = parse_timetable_from_html(html_content_next)
