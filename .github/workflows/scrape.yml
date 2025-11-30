@@ -1,15 +1,24 @@
-name: Scrape lukkari and Update Gist
+name: Scrape lukkari
 
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write      
+
 jobs:
-  scrape_lukkari_and_update_gist:
+  scrape_lukkari:
     runs-on: ubuntu-latest
+
+    env:
+      LOGIN_USER: ${{ secrets.SCRAPER_USERNAME }}
+      LOGIN_PASS: ${{ secrets.SCRAPER_PASSWORD }}    
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          ref: main           
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -17,7 +26,7 @@ jobs:
           python-version: "3.x"
 
       - name: Install dependencies
-        run: pip install selenium webdriver-manager requests
+        run: pip install selenium webdriver-manager requests beautifulsoup4
 
       - name: Install Chrome
         uses: browser-actions/setup-chrome@v1
@@ -25,29 +34,20 @@ jobs:
       - name: Run scraper
         run: python scraper.py
 
-      - name: Update Gist with JSON result
-        env:
-          GIST_ID: ${{ secrets.GIST_ID }}
-          GIST_FILE: ${{ secrets.GIST_FILE }}
-          GIST_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: Checkout data branch to push
+        uses: actions/checkout@v4
+        with:
+          ref: data  
+          path: data # use folder data to temporary save result.json before switch over another branch    
+
+      - name: Copy result.json to data branch folder
+        run: cp result.json data/result.json
+
+      - name: Push updated result.json to data branch
         run: |
-          echo "Uploading result.json to Gist..."
-          python3 - << 'EOF'
-          import json, requests, os
-
-          gist_id = os.environ["GIST_ID"]
-          gist_file = os.environ["GIST_FILE"]
-          token = os.environ["GIST_TOKEN"]
-
-          with open("result.json") as f:
-              content = f.read()
-
-          url = f"https://api.github.com/gists/{gist_id}"
-          headers = {"Authorization": f"Bearer {token}"}
-          payload = {"files": {gist_file: {"content": content}}}
-
-          r = requests.patch(url, headers=headers, data=json.dumps(payload))
-          print("Status:", r.status_code)
-          print(r.text)
-          r.raise_for_status()
-          EOF
+          cd data
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add result.json
+          git commit -m "Update result.json from workflow" || echo "No changes to commit"
+          git push origin data
