@@ -55,23 +55,20 @@ def main():
     # get data of each columns
     content_cols = soup.select('div.fc-content-skeleton td')
 
-    print("header_dates:", header_dates)
-    print("len(header_dates):", len(header_dates))
-    print("len(cols):", len(content_cols))
-    print("HTML snippet:", content_cols[:500])
-
     # initial an empty dict to store the result
     result = {
         date: {"label": name, "events": []}
         for date, name in zip(header_dates, header_names)
     }
 
-    print(result)
-
-    # parse content into result
-    for idx, td in enumerate(content_cols):
+    # parse data to result
+    for idx, td in enumerate(content_cols[1:]):
         # Map cell to date
         date_key = header_dates[idx]
+
+        # Ensure 'events' list exists
+        if "events" not in result[date_key]:
+            result[date_key]["events"] = []
 
         # Find all events in this cell
         events = td.select("a.fc-time-grid-event")
@@ -81,7 +78,7 @@ def main():
             time_span = ev.select_one(".fc-time span")
             time_text = time_span.get_text(strip=True) if time_span else ""
 
-            # Extract title  (weight 500)
+            # Extract title (weight 500)
             title_div = ev.select_one("div[style*='font-weight:500']")
             title_text = title_div.get_text(strip=True) if title_div else ""
 
