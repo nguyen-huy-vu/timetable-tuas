@@ -139,6 +139,11 @@ def main():
     # xpath for timetable
     xpath = "/html/body/app-root/mat-sidenav-container/mat-sidenav-content/mat-drawer-container/mat-drawer-content/div[2]/ng-component/div/div[2]/ng-fullcalendar/div[2]"
     
+    # wait until at least one event is rendered
+    WebDriverWait(driver, 15).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "a.fc-time-grid-event"))
+    )
+
     # get html content of current week
     table_element_this = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, xpath)))
     html_content_this = table_element_this.get_attribute("outerHTML")
@@ -146,12 +151,14 @@ def main():
     # move on next week
     WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/app-root/mat-sidenav-container/mat-sidenav-content/mat-drawer-container/mat-drawer-content/div[2]/ng-component/div/div[2]/ng-fullcalendar/div[1]/div[1]/div/button[2]"))).click()
 
+    # wait until at least one event is rendered
+    WebDriverWait(driver, 15).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "a.fc-time-grid-event"))
+    )
+
     # get html content of next week
     table_element_next = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, xpath)))
     html_content_next = table_element_next.get_attribute("outerHTML")
-
-    print(html_content_this)
-    print(html_content_next)
 
     # parse and save timetable of current week to json
     result_this = parse_timetable_from_html(html_content_this)
