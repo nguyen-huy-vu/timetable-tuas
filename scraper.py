@@ -32,9 +32,6 @@ def parse_timetable_from_html(html_content):
     # extract ALL event <a> tags in order
     events = soup.select("a.fc-time-grid-event")
 
-    # to be deleted
-    print(results)
-
     for ev in events:
 
         # extract date column index from parent <td> position
@@ -65,7 +62,7 @@ def parse_timetable_from_html(html_content):
         time_el = ev.select_one(".fc-time span")
         timeframe = time_el.get_text(strip=True) if time_el else ""
 
-        # Start/End parse
+        # start/end parse
         m = re.match(r"(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})", timeframe)
         start = m.group(1) if m else ""
         end = m.group(2) if m else ""
@@ -96,14 +93,12 @@ def parse_timetable_from_html(html_content):
             "course_code": course_code,
             "location": location
         })
-    # to be deleted
-    print(results)
 
     return results
 
     
-# a function write result to json
-def write_to_json(result,filename):
+# a function to write results to json files
+def write_to_json(result, filename):
     with open(f"{filename}.json", "w") as f:
         json.dump(result, f)
     print(f"Saved: {filename}.json")
