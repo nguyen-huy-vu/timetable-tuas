@@ -6,7 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
-# import time
+import re
 import json
 import os
 
@@ -17,58 +17,82 @@ def parse_timetable_from_html(html_content):
     """
     soup = BeautifulSoup(html_content, "html.parser")
 
-    results = []
+    # extract header dates (Mon, Tue, Wed...)
+    header_cells = soup.select("th.fc-day-header")
 
-    # get headers
-    day_columns = soup.select(".fc-col, .fc-timegrid-col")
-    print(day_columns)
-    for col in day_columns:
-        # get day name + date (Mon 3.2)
-        header = col.select_one(".fc-col-header, .fc-daygrid-day-top, .fc-daygrid-day-number")
-        if header:
-            day_text = header.get_text(" ", strip=True)
+    date_map = []
+    for th in header_cells:
+        date_str = th.get("data-date")
+        if date_str:
+            date_map.append(date_str)
+
+    # initialize a dict to store the result
+    results = {d: [] for d in date_map}
+
+    # extract ALL event <a> tags in order
+    events = soup.select("a.fc-time-grid-event")
+
+    for ev in events:
+
+        # extract date column index from parent <td> position
+        td = ev.find_parent("td")
+        if not td:
+            continue
+
+        tr = td.find_parent("tr")
+        if not tr:
+            continue
+
+        cells = tr.find_all("td", recursive=False)
+        try:
+            col_index = cells.index(td)
+        except ValueError:
+            continue
+
+        # col_index 0 = axis, so real dates start at index 1
+        date_index = col_index - 1
+        if date_index < 0 or date_index >= len(date_map):
+            continue
+
+        date_key = date_map[date_index]
+
+        # extract event info
+
+        # time
+        time_el = ev.select_one(".fc-time span")
+        timeframe = time_el.get_text(strip=True) if time_el else ""
+
+        # Start/End parse
+        m = re.match(r"(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})", timeframe)
+        start = m.group(1) if m else ""
+        end = m.group(2) if m else ""
+
+        # title + course code
+        title_el = ev.select_one("div[style*='font-weight:500']")
+        raw_title = title_el.get_text(strip=True) if title_el else ""
+
+        # split title and code
+        parts = raw_title.rsplit(" ", 1)
+        if len(parts) == 2 and re.match(r".+-\d+", parts[1]):
+            title = parts[0]
+            course_code = parts[1]
         else:
-            day_text = None
+            title = raw_title
+            course_code = ""
 
-        # all event entries inside the column
-        events = col.select(".fc-event, .event, .fc-timegrid-event")
-        for e in events:
-            text = e.get_text("\n", strip=True).split("\n")
+        # location
+        loc_el = ev.select_one("div[style*='font-weight:300']")
+        location = loc_el.get_text("\n", strip=True) if loc_el else ""
 
-            start_time, end_time = None, None
-            title, course_code, room, location = None, None, None, None
-
-            if len(text) > 0 and "-" in text[0]:
-                time_part = text[0]
-                parts = [t.strip() for t in time_part.split("-")]
-                if len(parts) == 2:
-                    start_time, end_time = parts
-
-            if len(text) > 1:
-                line = text[1]
-                parts = line.rsplit(" ", 1)
-                if len(parts) == 2 and parts[1].replace("-", "").isalnum():
-                    title = parts[0].strip()
-                    course_code = parts[1].strip()
-                else:
-                    title = line.strip()
-
-            if len(text) > 2:
-                loc_parts = [p.strip() for p in text[2].split(",")]
-                if len(loc_parts) >= 1:
-                    room = loc_parts[0]
-                if len(loc_parts) >= 2:
-                    location = ", ".join(loc_parts[1:])
-
-            results.append({
-                "day": day_text,
-                "start_time": start_time,
-                "end_time": end_time,
-                "title": title,
-                "course_code": course_code,
-                "room": room,
-                "location": location,
-            })
+        # add record to results
+        results[date_key].append({
+            "timeframe": timeframe,
+            "start": start,
+            "end": end,
+            "title": title,
+            "course_code": course_code,
+            "location": location
+        })
 
     return results
 
@@ -113,7 +137,7 @@ def main():
     # time.sleep(5)  # wait to ensure calendar loaded
 
     # xpath for timetable
-    xpath = "/html/body/app-root/mat-sidenav-container/mat-sidenav-content/mat-drawer-container/mat-drawer-content/div[2]/ng-component/div/div[2]/ng-fullcalendar"
+    xpath = "/html/body/app-root/mat-sidenav-container/mat-sidenav-content/mat-drawer-container/mat-drawer-content/div[2]/ng-component/div/div[2]/ng-fullcalendar/div[2]"
     
     # get html content of current week
     # table_element_this = driver.find_element(By.XPATH, xpath)
