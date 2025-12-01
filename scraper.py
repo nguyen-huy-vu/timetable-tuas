@@ -122,43 +122,36 @@ def main():
 
     # open lukkari
     driver.get("https://lukkari.turkuamk.fi/#/schedule")
-    # time.sleep(2)  # wait to ensure page loaded
 
     # click to login
-    # driver.find_element(By.XPATH, "/html/body/app-root/mat-sidenav-container/mat-sidenav-content/mat-toolbar/mat-toolbar-row/button[2]").click()
-    # time.sleep(2)  # wait to ensure page loaded
     WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/app-root/mat-sidenav-container/mat-sidenav-content/mat-toolbar/mat-toolbar-row/button[2]"))).click()
     
     # login
-    # driver.find_element(By.XPATH, "/html/body/div/div/div/div[1]/form/div[1]/input").send_keys(username)
     WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "/html/body/div/div/div/div[1]/form/div[1]/input"))).send_keys(username)
     driver.find_element(By.XPATH, "/html/body/div/div/div/div[1]/form/div[2]/input").send_keys(password)
     driver.find_element(By.XPATH, "/html/body/div/div/div/div[1]/form/div[4]/button").click()
-    # time.sleep(5)  # wait to ensure calendar loaded
 
     # xpath for timetable
     xpath = "/html/body/app-root/mat-sidenav-container/mat-sidenav-content/mat-drawer-container/mat-drawer-content/div[2]/ng-component/div/div[2]/ng-fullcalendar/div[2]"
     
     # get html content of current week
-    # table_element_this = driver.find_element(By.XPATH, xpath)
     table_element_this = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, xpath)))
     html_content_this = table_element_this.get_attribute("outerHTML")
-    # time.sleep(1)
-    print(html_content_this)
-    # parse and save timetable of current week to json
-    result_this = parse_timetable_from_html(html_content_this)
-    write_to_json(result_this,"result_this") 
 
     # move on next week
-    # driver.find_element(By.XPATH, "/html/body/app-root/mat-sidenav-container/mat-sidenav-content/mat-drawer-container/mat-drawer-content/div[2]/ng-component/div/div[2]/ng-fullcalendar/div[1]/div[1]/div/button[2]").click()
-    # time.sleep(3)
     WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/app-root/mat-sidenav-container/mat-sidenav-content/mat-drawer-container/mat-drawer-content/div[2]/ng-component/div/div[2]/ng-fullcalendar/div[1]/div[1]/div/button[2]"))).click()
 
     # get html content of next week
     table_element_next = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, xpath)))
     html_content_next = table_element_next.get_attribute("outerHTML")
-    # time.sleep(1)
+
+    print(html_content_this)
     print(html_content_next)
+
+    # parse and save timetable of current week to json
+    result_this = parse_timetable_from_html(html_content_this)
+    write_to_json(result_this,"result_this") 
+
     # parse and save timetable of next week to json
     result_next = parse_timetable_from_html(html_content_next)
     write_to_json(result_next,"result_next")
