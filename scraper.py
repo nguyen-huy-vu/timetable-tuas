@@ -120,7 +120,7 @@ def main():
     table_element_this = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, xpath)))
     html_content_this = table_element_this.get_attribute("outerHTML")
     # time.sleep(1)
-
+    print(html_content_this)
     # parse and save timetable of current week to json
     result_this = parse_timetable_from_html(html_content_this)
     write_to_json(result_this,"result_this") 
@@ -134,7 +134,7 @@ def main():
     table_element_next = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, xpath)))
     html_content_next = table_element_next.get_attribute("outerHTML")
     # time.sleep(1)
-
+    print(html_content_next)
     # parse and save timetable of next week to json
     result_next = parse_timetable_from_html(html_content_next)
     write_to_json(result_next,"result_next")
