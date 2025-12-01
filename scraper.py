@@ -21,7 +21,7 @@ def parse_timetable_from_html(html_content):
 
     # get headers
     day_columns = soup.select(".fc-col, .fc-timegrid-col")
-
+    print(day_columns)
     for col in day_columns:
         # get day name + date (Mon 3.2)
         header = col.select_one(".fc-col-header, .fc-daygrid-day-top, .fc-daygrid-day-number")
