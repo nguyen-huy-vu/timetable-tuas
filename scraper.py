@@ -32,6 +32,9 @@ def parse_timetable_from_html(html_content):
     # extract ALL event <a> tags in order
     events = soup.select("a.fc-time-grid-event")
 
+    # to be deleted
+    print(results)
+
     for ev in events:
 
         # extract date column index from parent <td> position
@@ -93,6 +96,8 @@ def parse_timetable_from_html(html_content):
             "course_code": course_code,
             "location": location
         })
+    # to be deleted
+    print(results)
 
     return results
 
