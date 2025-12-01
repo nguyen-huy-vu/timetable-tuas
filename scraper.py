@@ -3,8 +3,10 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
-import time
+# import time
 import json
 import os
 
@@ -13,44 +15,62 @@ def parse_timetable_from_html(html_content):
     """
     Parse timetable HTML and return structured dict with dates and events
     """
-    soup = BeautifulSoup(html_content, 'html.parser')
+    soup = BeautifulSoup(html_content, "html.parser")
+
+    results = []
 
     # get headers
-    headers = soup.select('th.fc-day-header')
-    header_dates = [th['data-date'] for th in headers]
-    header_names = [th.get_text(strip=True) for th in headers]
+    day_columns = soup.select(".fc-col, .fc-timegrid-col")
 
-    # initial an empty dict to store the result
-    result = {
-        date: {"label": name, "events": []}
-        for date, name in zip(header_dates, header_names)
-    }
+    for col in day_columns:
+        # get day name + date (Mon 3.2)
+        header = col.select_one(".fc-col-header, .fc-daygrid-day-top, .fc-daygrid-day-number")
+        if header:
+            day_text = header.get_text(" ", strip=True)
+        else:
+            day_text = None
 
-    # parse contents to result
-    content_cols = soup.select('div.fc-content-skeleton td')
+        # all event entries inside the column
+        events = col.select(".fc-event, .event, .fc-timegrid-event")
+        for e in events:
+            text = e.get_text("\n", strip=True).split("\n")
 
-    for td in content_cols:
-        date_key = td.get('data-date')
-        if not date_key or date_key not in header_dates:
-            continue
+            start_time, end_time = None, None
+            title, course_code, room, location = None, None, None, None
 
-        events = td.select("a.fc-time-grid-event")
-        for ev in events:
-            time_span = ev.select_one(".fc-time span")
-            time_text = time_span.get_text(strip=True) if time_span else ""
+            if len(text) > 0 and "-" in text[0]:
+                time_part = text[0]
+                parts = [t.strip() for t in time_part.split("-")]
+                if len(parts) == 2:
+                    start_time, end_time = parts
 
-            title_div = ev.select_one("div[style*='font-weight:500']")
-            title_text = title_div.get_text(strip=True) if title_div else ""
+            if len(text) > 1:
+                line = text[1]
+                parts = line.rsplit(" ", 1)
+                if len(parts) == 2 and parts[1].replace("-", "").isalnum():
+                    title = parts[0].strip()
+                    course_code = parts[1].strip()
+                else:
+                    title = line.strip()
 
-            loc_div = ev.select_one("div[style*='font-weight:300']")
-            location_text = loc_div.get_text("\n", strip=True) if loc_div else ""
+            if len(text) > 2:
+                loc_parts = [p.strip() for p in text[2].split(",")]
+                if len(loc_parts) >= 1:
+                    room = loc_parts[0]
+                if len(loc_parts) >= 2:
+                    location = ", ".join(loc_parts[1:])
 
-            result[date_key]["events"].append({
-                "time": time_text,
-                "title": title_text,
-                "location": location_text
+            results.append({
+                "day": day_text,
+                "start_time": start_time,
+                "end_time": end_time,
+                "title": title,
+                "course_code": course_code,
+                "room": room,
+                "location": location,
             })
-    return result
+
+    return results
 
     
 # a function write result to json
@@ -78,38 +98,42 @@ def main():
 
     # open lukkari
     driver.get("https://lukkari.turkuamk.fi/#/schedule")
-    time.sleep(2)  # wait to ensure page loaded
+    # time.sleep(2)  # wait to ensure page loaded
 
     # click to login
-    driver.find_element(By.XPATH, "/html/body/app-root/mat-sidenav-container/mat-sidenav-content/mat-toolbar/mat-toolbar-row/button[2]").click()
-    time.sleep(2)  # wait to ensure page loaded
-
+    # driver.find_element(By.XPATH, "/html/body/app-root/mat-sidenav-container/mat-sidenav-content/mat-toolbar/mat-toolbar-row/button[2]").click()
+    # time.sleep(2)  # wait to ensure page loaded
+    WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/app-root/mat-sidenav-container/mat-sidenav-content/mat-toolbar/mat-toolbar-row/button[2]"))).click()
+    
     # login
-    driver.find_element(By.XPATH, "/html/body/div/div/div/div[1]/form/div[1]/input").send_keys(username)
+    # driver.find_element(By.XPATH, "/html/body/div/div/div/div[1]/form/div[1]/input").send_keys(username)
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located(By.XPATH, "/html/body/div/div/div/div[1]/form/div[1]/input"))).send_keys(username)
     driver.find_element(By.XPATH, "/html/body/div/div/div/div[1]/form/div[2]/input").send_keys(password)
     driver.find_element(By.XPATH, "/html/body/div/div/div/div[1]/form/div[4]/button").click()
-    time.sleep(5)  # wait to ensure calendar loaded
+    # time.sleep(5)  # wait to ensure calendar loaded
 
     # xpath for timetable
     xpath = "/html/body/app-root/mat-sidenav-container/mat-sidenav-content/mat-drawer-container/mat-drawer-content/div[2]/ng-component/div/div[2]/ng-fullcalendar"
     
     # get html content of current week
-    table_element_this = driver.find_element(By.XPATH, xpath)
+    # table_element_this = driver.find_element(By.XPATH, xpath)
+    table_element_this = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, xpath)))
     html_content_this = table_element_this.get_attribute("outerHTML")
-    time.sleep(1)
+    # time.sleep(1)
 
     # parse and save timetable of current week to json
     result_this = parse_timetable_from_html(html_content_this)
     write_to_json(result_this,"result_this") 
 
     # move on next week
-    driver.find_element(By.XPATH, "/html/body/app-root/mat-sidenav-container/mat-sidenav-content/mat-drawer-container/mat-drawer-content/div[2]/ng-component/div/div[2]/ng-fullcalendar/div[1]/div[1]/div/button[2]").click()
-    time.sleep(3)
-    
+    # driver.find_element(By.XPATH, "/html/body/app-root/mat-sidenav-container/mat-sidenav-content/mat-drawer-container/mat-drawer-content/div[2]/ng-component/div/div[2]/ng-fullcalendar/div[1]/div[1]/div/button[2]").click()
+    # time.sleep(3)
+    WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/app-root/mat-sidenav-container/mat-sidenav-content/mat-drawer-container/mat-drawer-content/div[2]/ng-component/div/div[2]/ng-fullcalendar/div[1]/div[1]/div/button[2]"))).click()
+
     # get html content of next week
-    table_element_next = driver.find_element(By.XPATH, xpath)
+    table_element_next = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, xpath)))
     html_content_next = table_element_next.get_attribute("outerHTML")
-    time.sleep(1)
+    # time.sleep(1)
 
     # parse and save timetable of next week to json
     result_next = parse_timetable_from_html(html_content_next)
