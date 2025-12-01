@@ -107,7 +107,7 @@ def main():
     
     # login
     # driver.find_element(By.XPATH, "/html/body/div/div/div/div[1]/form/div[1]/input").send_keys(username)
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located(By.XPATH, "/html/body/div/div/div/div[1]/form/div[1]/input"))).send_keys(username)
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "/html/body/div/div/div/div[1]/form/div[1]/input"))).send_keys(username)
     driver.find_element(By.XPATH, "/html/body/div/div/div/div[1]/form/div[2]/input").send_keys(password)
     driver.find_element(By.XPATH, "/html/body/div/div/div/div[1]/form/div[4]/button").click()
     # time.sleep(5)  # wait to ensure calendar loaded
