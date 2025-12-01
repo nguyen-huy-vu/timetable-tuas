@@ -12,7 +12,8 @@ jobs:
 
     env:
       LOGIN_USER: ${{ secrets.SCRAPER_USERNAME }}
-      LOGIN_PASS: ${{ secrets.SCRAPER_PASSWORD }}    
+      LOGIN_PASS: ${{ secrets.SCRAPER_PASSWORD }}
+      GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
     steps:
       - name: Checkout repo
